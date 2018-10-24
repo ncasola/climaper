@@ -4,10 +4,8 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-use Jackiedo\DotenvEditor\Facades\DotenvEditor;
-use Ddeboer\Imap\Server;
-use Ddeboer\Imap\SearchExpression;
-use Ddeboer\Imap\Search\Email\From;
+
+use App\Library\Services\Mailbox;
 
 class Clean extends Command
 {
@@ -23,7 +21,7 @@ class Clean extends Command
      *
      * @var string
      */
-    protected $description = 'Clean all junk emails';
+    protected $description = 'Clean junk emails';
 
     /**
      * Execute the console command.
@@ -32,13 +30,10 @@ class Clean extends Command
      */
     public function handle()
     {
-        $keys = DotenvEditor::getKeys();
-        $server = new Server($keys["IMAP_URL"]["value"]);
-        $connection = $server->authenticate($keys["IMAP_USERNAME"]["value"], $keys["IMAP_PASSWORD"]["value"]);
-        $mailbox = $connection->getMailbox('Archive');
-        $search = new SearchExpression();
-        $search->addCondition(new From('do-not-reply@imdb.com'));
-        $messages = $mailbox->getMessages($search);
+        $conn = new Mailbox();
+        $email = $this->ask('Email to search?');
+        $box = $this->ask('Folder?');
+        $messages = $conn->searchFrom($box, $email);
         $bar = $this->output->createProgressBar(count($messages));
         $bar->setOverwrite(true);
         foreach ($messages as $message) {
@@ -46,7 +41,7 @@ class Clean extends Command
             $bar->advance();
         }
         $bar->finish();
-        $connection->expunge();
+        $conn->deleteAll();
     }
 
     /**

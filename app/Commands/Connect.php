@@ -4,8 +4,7 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-use Ddeboer\Imap\Server;
-use Jackiedo\DotenvEditor\Facades\DotenvEditor;
+use App\Library\Services\Mailbox;
 
 class Connect extends Command
 {
@@ -32,17 +31,8 @@ class Connect extends Command
         $a["url"] = $this->ask('What is the URL of imap server?');
         $a["username"] = $this->ask('What is the username of imap server?');
         $a["password"] = $this->ask('What is the password of imap server?');
-        $this->task("Conecting to imap...", function () use ($a) {
-            $server = new Server($a["url"]);
-            $connection = $server->authenticate($a["username"], $a["password"]);
-            return true;
-        });
-        $this->task("Saving connect info for later", function () use ($a) {
-            $file = DotenvEditor::load();
-            $file->setKey('IMAP_URL', $a["url"]);
-            $file->setKey('IMAP_USERNAME', $a["username"]);
-            $file->setKey('IMAP_PASSWORD', $a["password"]);
-            $file->save();
+        $this->task("Trying and saving for later...", function () use ($a) {
+            $conn = new Mailbox($a["url"], $a["username"], $a["password"]);
             return true;
         });
     }
