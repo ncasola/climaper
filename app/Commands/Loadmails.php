@@ -4,7 +4,8 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-use DB;
+use App\Library\Services\Mailbox;
+use Illuminate\Support\Facades\DB;
 
 class Loadmails extends Command
 {
@@ -13,7 +14,7 @@ class Loadmails extends Command
      *
      * @var string
      */
-    protected $signature = 'load:mails {--M|mailbox}';
+    protected $signature = 'load:mails {mailbox?}';
 
     /**
      * The description of the command.
@@ -29,17 +30,21 @@ class Loadmails extends Command
      */
     public function handle()
     {
-        $mailbox = ($this->option('mailbox') ? $this->option('mailbox') : $this->ask('Folder?'));
         $conn = new Mailbox();
+        $mailbox = ($this->argument('mailbox') ? $this->argument('mailbox') : $this->ask('Folder'));
         $messages = $conn->all($mailbox);
         $bar = $this->output->createProgressBar(count($messages));
         $bar->setOverwrite(true);
         foreach ($messages as $message) {
-            DB::table('mails')->insert( [
-                'mail_from' => $message->getFrom(),
-                'mail_id' => $message->getId(),
-                'mailbox' => $mailbox
-            ] );
+            try {
+                DB::table('mails')->insert( [
+                    'mail_from' => $message->getFrom()->getAddress(),
+                    'mail_id' => $message->getNumber(),
+                    'mailbox' => $mailbox
+                ] );
+            } catch (Exception $e) {
+                continue;
+            }
             $bar->advance();
         }
         $bar->finish();

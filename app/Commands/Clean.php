@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-
 use App\Library\Services\Mailbox;
 
 class Clean extends Command
@@ -15,8 +14,8 @@ class Clean extends Command
      * @var string
      */
     protected $signature = 'clean 
-                            {--C|criteria}
-                            {--M|mailbox}';
+                            {criteria?}
+                            {mailbox?}';
 
     /**
      * The description of the command.
@@ -32,9 +31,9 @@ class Clean extends Command
      */
     public function handle()
     {
-        $criteria = ($this->option('criteria') ? $this->option('criteria') : $this->ask('Email to search?'));
-        $mailbox = ($this->option('mailbox') ? $this->option('mailbox') : $this->ask('Folder?'));
         $conn = new Mailbox();
+        $criteria = ($this->argument('criteria') ? $this->argument('criteria') : $this->ask('Email to search'));
+        $mailbox = ($this->argument('mailbox') ? $this->argument('mailbox') : $this->ask('Folder'));
         $messages = $conn->searchFrom($mailbox, $criteria);
         $bar = $this->output->createProgressBar(count($messages));
         $bar->setOverwrite(true);

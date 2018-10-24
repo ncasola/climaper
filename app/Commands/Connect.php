@@ -13,10 +13,7 @@ class Connect extends Command
      *
      * @var string
      */
-    protected $signature = 'connect
-                            {--R|url}
-                            {--U|username}
-                            {--P|password}';
+    protected $signature = 'connect {info?* : In this format example@gmail.com pass imap.gmail.com}';
     /**
      * The description of the command.
      *
@@ -33,17 +30,17 @@ class Connect extends Command
     {
         $ifKey = \DotenvEditor::keyExists('IMAP_URL');
         if($ifKey) {
-            $this->info("No need to connect, you are already connectit");
+            $this->info("No need to connect, you are already connect-it");
             exit();
-        }elseif($this->option("url")) {
-            $info = $this->options();
+        }elseif($this->argument("info")) {
+            $info = $this->argument();
         } else {
-            $this->info("Need the connect info in the follow format: example@gamilcom|pass|imap.provider.com");
+            $this->info("Need the connect info in the follow format: example@gmail.com|pass|imap.gmail.com");
             $info = explode("|", $this->ask("Connect info"));
         }
-        list($url, $username, $password) = $info;
-        $this->task("Trying conn and saving for later...", function () use ($a) {
-            $conn = new Mailbox($a["url"], $a["username"], $a["password"]);
+        list($username, $password, $url) = $info;
+        $this->task("Trying conn and saving for later...", function () use ($url, $username, $password) {
+            $conn = new Mailbox($url, $username, $password);
             return true;
         });
     }

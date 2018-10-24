@@ -9,14 +9,14 @@ class Mailbox
     public function __construct($url=null, $username=null, $password=null)
     {	
     	$ifKey = \DotenvEditor::keyExists('IMAP_URL');
-    	if (!$url & $ifKey) {
+    	if (!$url and $ifKey) {
     		$keys = \DotenvEditor::getKeys();
     		$url = $keys["IMAP_URL"]["value"];
     		$username = $keys["IMAP_USERNAME"]["value"];
     		$password = $keys["IMAP_PASSWORD"]["value"];
-    	} elseif(!$url & !$ifKey) {
-    		throw new Exception('Need to run firts the connect command');
-    	} elseif($url & !$ifKey) {
+    	} elseif(!$url and !$ifKey) {
+    		throw new \Exception('Need to run firts the connect command');
+    	} elseif($url and !$ifKey) {
     		$file = \DotenvEditor::load();
             $file = \DotenvEditor::setKeys([
                 ['key'     => 'IMAP_URL', 'value'   => $url ],
@@ -28,6 +28,9 @@ class Mailbox
     	$server = new Server($url);
     	$connection = $server->authenticate($username, $password);
         $this->conn = $connection;
+    }
+    public function getConn() {
+        return $this->conn;
     }
     public function searchFrom($mailbox, $criteria) {
         $search = new SearchExpression();
