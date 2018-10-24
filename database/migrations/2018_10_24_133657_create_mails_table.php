@@ -15,7 +15,9 @@ class CreateMailsTable extends Migration
     {
         Schema::create('mails', function (Blueprint $table) {
             $table->increments('id');
-            $table->timestamps();
+            $table->string('mailbox');
+            $table->string('mail_from');
+            $table->integer('mail_id');
         });
     }
 

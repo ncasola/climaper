@@ -6,21 +6,23 @@ use \Ddeboer\Imap\Search\Email\From;
 
 class Mailbox
 {
-    public function __construct($url="", $username="", $password="")
+    public function __construct($url=null, $username=null, $password=null)
     {	
     	$ifKey = \DotenvEditor::keyExists('IMAP_URL');
-    	if (empty($url) & $ifKey) {
+    	if (!$url & $ifKey) {
     		$keys = \DotenvEditor::getKeys();
     		$url = $keys["IMAP_URL"]["value"];
     		$username = $keys["IMAP_USERNAME"]["value"];
     		$password = $keys["IMAP_PASSWORD"]["value"];
-    	} elseif(empty($url) & $ifKey) {
-    		// lanzar error
-    	} elseif(empty($url) & !$ifKey) {
-    		$file = DotenvEditor::load();
-            $file->setKey('IMAP_URL', $a["url"]);
-            $file->setKey('IMAP_USERNAME', $a["username"]);
-            $file->setKey('IMAP_PASSWORD', $a["password"]);
+    	} elseif(!$url & !$ifKey) {
+    		throw new Exception('Need to run firts the connect command');
+    	} elseif($url & !$ifKey) {
+    		$file = \DotenvEditor::load();
+            $file = \DotenvEditor::setKeys([
+                ['key'     => 'IMAP_URL', 'value'   => $url ],
+                ['key'     => 'IMAP_USERNAME', 'value'   => $username ],
+                ['key'     => 'IMAP_PASSWORD', 'value'   => $password ],
+            ]);
             $file->save();
     	}
     	$server = new Server($url);

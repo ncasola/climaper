@@ -4,26 +4,23 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
+use DB;
 
-use App\Library\Services\Mailbox;
-
-class Clean extends Command
+class Loadmails extends Command
 {
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'clean 
-                            {--C|criteria}
-                            {--M|mailbox}';
+    protected $signature = 'load:mails {--M|mailbox}';
 
     /**
      * The description of the command.
      *
      * @var string
      */
-    protected $description = 'Clean all emails from a sender';
+    protected $description = 'Import all mails from folder to database';
 
     /**
      * Execute the console command.
@@ -32,14 +29,17 @@ class Clean extends Command
      */
     public function handle()
     {
-        $criteria = ($this->option('criteria') ? $this->option('criteria') : $this->ask('Email to search?'));
         $mailbox = ($this->option('mailbox') ? $this->option('mailbox') : $this->ask('Folder?'));
         $conn = new Mailbox();
-        $messages = $conn->searchFrom($mailbox, $criteria);
+        $messages = $conn->all($mailbox);
         $bar = $this->output->createProgressBar(count($messages));
         $bar->setOverwrite(true);
         foreach ($messages as $message) {
-            $message->delete();
+            DB::table('mails')->insert( [
+                'mail_from' => $message->getFrom(),
+                'mail_id' => $message->getId(),
+                'mailbox' => $mailbox
+            ] );
             $bar->advance();
         }
         $bar->finish();
