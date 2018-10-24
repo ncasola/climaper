@@ -34,6 +34,11 @@ class Mailbox
         $messages = $mailbox->getMessages($search);
         return $messages;
     }
+    public function all($mailbox) {
+        $mailbox = $this->conn->getMailbox($mailbox);
+        $messages = $mailbox->getMessages();
+        return $messages;
+    }
     public function deleteAll() {
         $this->conn->expunge();
     }
