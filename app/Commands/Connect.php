@@ -29,12 +29,11 @@ class Connect extends Command
     public function handle()
     {
         $ifKey = \DotenvEditor::keyExists('IMAP_URL');
-        if($ifKey) {
+        $info = $this->argument('info');
+        if($ifKey and !$info) {
             $this->info("No need to connect, you are already connect-it");
             exit();
-        }elseif($this->argument("info")) {
-            $info = $this->argument();
-        } else {
+        } elseif(!$ifKey and !$info) {
             $this->info("Need the connect info in the follow format: example@gmail.com|pass|imap.gmail.com");
             $info = explode("|", $this->ask("Connect info"));
         }

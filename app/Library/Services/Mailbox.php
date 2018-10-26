@@ -16,7 +16,7 @@ class Mailbox
     		$password = $keys["IMAP_PASSWORD"]["value"];
     	} elseif(!$url and !$ifKey) {
     		throw new \Exception('Need to run firts the connect command');
-    	} elseif($url and !$ifKey) {
+    	} elseif($url) {
     		$file = \DotenvEditor::load();
             $file = \DotenvEditor::setKeys([
                 ['key'     => 'IMAP_URL', 'value'   => $url ],
@@ -31,6 +31,10 @@ class Mailbox
     }
     public function getConn() {
         return $this->conn;
+    }
+    public function getMailboxes() {
+        $mailboxes = $this->conn->getMailboxes();
+        return $mailboxes;
     }
     public function searchFrom($mailbox, $criteria) {
         $search = new SearchExpression();

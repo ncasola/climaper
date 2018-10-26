@@ -39,16 +39,15 @@ class DButils extends Command
                 $messages = $conn->all($mailbox);
                 $bar = $this->output->createProgressBar(count($messages));
                 $bar->setOverwrite(true);
+                DB::table('mails')->truncate();
                 foreach ($messages as $message) {
-                    try {
+                    $from = $message->getFrom();
+                    if(!$from) { continue; }
                         DB::table('mails')->insert( [
-                            'mail_from' => $message->getFrom()->getAddress(),
+                            'mail_from' => $from->getAddress(),
                             'mail_id' => $message->getNumber(),
                             'mailbox' => $mailbox
                         ] );
-                    } catch (Exception $e) {
-                        continue;
-                    }
                     $bar->advance();
                 }
                 $bar->finish(); 
@@ -58,8 +57,6 @@ class DButils extends Command
                     ->select(DB::raw('count(id) as cuenta, mail_from'))
                     ->groupBy('mail_from')
                     ->where('mailbox', '=', $mailbox)
-                    ->having('cuenta', '>', 10)
-                    ->having('cuenta', '<', 50)
                     ->orderBy('cuenta', 'desc')
                     ->get();
                 $array = json_decode(json_encode($big), true);
