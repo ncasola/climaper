@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Storage;
 use LaravelZero\Framework\Commands\Command;
 use App\Library\Services\Mailbox;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class DButils extends Command
      *
      * @var string
      */
-    protected $signature = 'db {order} {--mailbox=}';
+    protected $signature = 'db {order} {mailbox?} {--file}';
 
     /**
      * The description of the command.
@@ -31,7 +32,7 @@ class DButils extends Command
     public function handle()
     {
         $conn = new Mailbox();
-        $mailbox = ($this->option('mailbox') ? $this->option('mailbox') : $this->ask('Folder'));
+        $mailbox = ($this->argument('mailbox') ? $this->argument('mailbox') : $this->ask('Folder'));
         $order = $this->argument('order');
         switch ($order) {
             case 'load':
@@ -57,11 +58,16 @@ class DButils extends Command
                     ->select(DB::raw('count(id) as cuenta, mail_from'))
                     ->groupBy('mail_from')
                     ->where('mailbox', '=', $mailbox)
-                    ->having('cuenta', '>', 100)
+                    ->having('cuenta', '>', 10)
+                    ->having('cuenta', '<', 50)
                     ->orderBy('cuenta', 'desc')
                     ->get();
                 $array = json_decode(json_encode($big), true);
                 $this->table(['Q', 'FROM'], $array);
+                if($this->option('file')) {
+                    $data = implode(PHP_EOL, array_column($array, 'mail_from'));
+                    Storage::put('emails.txt', $data);
+                }
         } 
     }
 

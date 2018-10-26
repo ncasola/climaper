@@ -39,6 +39,15 @@ class Mailbox
         $messages = $mailbox->getMessages($search);
         return $messages;
     }
+    public function searchList($mailbox, $list) {
+        $search = new SearchExpression();
+        foreach ($list as $criteria) {
+            $search->addCondition(new From($criteria));
+        }
+        $mailbox = $this->conn->getMailbox($mailbox);
+        $messages = $mailbox->getMessages($search);
+        return $messages;
+    }
     public function all($mailbox) {
         $mailbox = $this->conn->getMailbox($mailbox);
         $messages = $mailbox->getMessages();
